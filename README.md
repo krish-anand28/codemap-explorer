@@ -2,17 +2,17 @@
 
 **A local Git repository analysis engine with a visual dependency graph and AI-powered code insights.**
 
-CodeMap Explorer scans any local repository, maps file dependencies, and renders an interactive graph. Click any file node to get an AI-generated explanation powered by Google Gemini.
+CodeMap Explorer scans any local repository, maps file dependencies, and renders an interactive graph. Click any file node to get an AI generated explanation powered by Google Gemini.
 
 ---
 
 ## Features
 
-- 🗺️ **Visual Dependency Graph** — See how your files connect via imports and requires
-- 🤖 **AI Code Explanations** — Click any file for a Gemini-powered summary, purpose, complexity, and key concepts
-- 🎨 **Language Detection** — Supports Python, JavaScript, TypeScript, Java, Go, Ruby, Rust, and more
-- 📊 **Code Metrics** — Lines of code, file size categories, and dependency counts
-- ⚡ **Interactive UI** — Zoom, pan, minimap, and animated edges in a stunning dark-mode interface
+-  **Visual Dependency Graph** — See how your files connect via imports and requires
+-  **AI Code Explanations** — Click any file for a Gemini-powered summary, purpose, complexity, and key concepts
+-  **Language Detection** — Supports Python, JavaScript, TypeScript, Java, Go, Ruby, Rust, and more
+-  **Code Metrics** — Lines of code, file size categories, and dependency counts
+-  **Interactive UI** — Zoom, pan, minimap, and animated edges in a stunning dark-mode interface
 
 ---
 
