@@ -39,7 +39,6 @@ function App() {
           lines_of_code: node.lines_of_code,
           size_category: node.size_category,
           language: node.language,
-          raw_content: node.data?.raw_content || '',
           file_id: node.id
         }
       }));
@@ -70,8 +69,7 @@ function App() {
     setLoading(true);
     try {
       const response = await axios.post(`${API_BASE}/api/explain`, {
-        file_id: node.data.file_id,
-        content: node.data.raw_content
+        file_id: node.data.file_id
       });
       setAiResult(response.data);
     } catch (err) {

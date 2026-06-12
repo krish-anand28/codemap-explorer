@@ -32,10 +32,45 @@ app.add_middleware(
 
 analyzer = RepoAnalyzer()
 
-GEMINI_API_URL = (
-    "https://generativelanguage.googleapis.com/v1beta/"
-    "models/gemini-2.0-flash:generateContent"
-)
+# Server-side state for the explain endpoint
+_last_repo_path = None
+_last_file_map: dict = {}
+
+# System directories that must never be analyzed
+BLOCKED_PATHS = frozenset({
+    "/", "/etc", "/usr", "/bin", "/sbin", "/var",
+    "/sys", "/proc", "/dev", "/boot", "/lib", "/tmp",
+})
+
+
+def _validate_repo_path(raw_path: str) -> Path:
+    """Validate and resolve a repository path, blocking system-critical locations."""
+    repo = Path(raw_path).resolve()
+
+    if not repo.is_absolute():
+        raise HTTPException(status_code=400, detail="Path must be absolute.")
+
+    repo_str = str(repo)
+    for blocked in BLOCKED_PATHS:
+        if repo_str == blocked or (
+            blocked != "/" and repo_str.startswith(blocked + "/")
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail=f"Access denied: '{raw_path}' is a protected system path.",
+            )
+
+    if not repo.exists():
+        raise HTTPException(
+            status_code=400, detail=f"Path does not exist: {raw_path}"
+        )
+
+    if not repo.is_dir():
+        raise HTTPException(
+            status_code=400, detail=f"Path is not a directory: {raw_path}"
+        )
+
+    return repo
 
 
 # --------------- Request / Response models ---------------
@@ -46,7 +81,6 @@ class AnalyzeRequest(BaseModel):
 
 class ExplainRequest(BaseModel):
     file_id: str
-    content: str
 
 
 # --------------- Endpoints ---------------
@@ -60,22 +94,28 @@ async def health():
 @app.post("/api/analyze")
 async def analyze(request: AnalyzeRequest):
     """Analyze a local repository and return its dependency graph."""
-    repo = Path(request.repo_path)
+    global _last_repo_path, _last_file_map
 
-    if not repo.exists():
-        raise HTTPException(
-            status_code=400,
-            detail=f"Path does not exist: {request.repo_path}",
-        )
-    if not repo.is_dir():
-        raise HTTPException(
-            status_code=400,
-            detail=f"Path is not a directory: {request.repo_path}",
-        )
+    repo = _validate_repo_path(request.repo_path)
 
     try:
-        graph = analyzer.build_graph(str(repo.resolve()))
+        graph = analyzer.build_graph(str(repo))
+
+        # Cache file contents server-side for the explain endpoint
+        _last_repo_path = str(repo)
+        _last_file_map = {
+            node["id"]: node.get("data", {}).get("raw_content", "")
+            for node in graph["nodes"]
+        }
+
+        # Strip raw source code from the response sent to the client
+        for node in graph["nodes"]:
+            if "data" in node:
+                node["data"].pop("raw_content", None)
+
         return graph
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=500,
@@ -93,6 +133,20 @@ async def explain(request: ExplainRequest):
             detail="GEMINI_API_KEY is not configured. Please set it in the .env file.",
         )
 
+    # Read file content from server-side cache (never sent by the client)
+    if not _last_repo_path:
+        raise HTTPException(
+            status_code=400,
+            detail="No repository has been analyzed yet. Please analyze a repository first.",
+        )
+
+    content = _last_file_map.get(request.file_id)
+    if content is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"File '{request.file_id}' not found in the last analyzed repository.",
+        )
+
     prompt = (
         "You are a senior software engineer onboarding a new developer.\n"
         f"Analyze this code file named '{request.file_id}' and respond with ONLY "
@@ -102,7 +156,7 @@ async def explain(request: ExplainRequest):
         '"complexity": "low | medium | high", '
         '"key_concepts": ["concept1", "concept2", "concept3"]}\n\n'
         "Here is the code:\n\n"
-        f"{request.content}"
+        f"{content}"
     )
 
     payload = {
@@ -118,7 +172,7 @@ async def explain(request: ExplainRequest):
     async def call_gemini(model: str):
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
         async with httpx.AsyncClient(timeout=30.0) as client:
-            return await client.post(url, params={"key": api_key}, json=payload)
+            return await client.post(url, headers={"x-goog-api-key": api_key}, json=payload)
 
     try:
         # Try primary model
