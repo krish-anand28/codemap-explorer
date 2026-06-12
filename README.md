@@ -72,7 +72,7 @@ npm install
    GEMINI_API_KEY=your_key_here
    ```
 
-> **Note:** The free tier of Gemini API is sufficient for this application. The AI explanation feature calls `gemini-2.0-flash` which has generous rate limits.
+> **Note:** The free tier of Gemini API is sufficient for this application. The AI explanation feature calls `gemini-2.5-flash` (with `gemini-1.5-flash-latest` as a rate-limit fallback) which has generous rate limits.
 
 ---
 
@@ -141,11 +141,9 @@ The UI opens at **http://localhost:5173**
 
 ## Screenshots
 
-> *Screenshots will be added after first deployment*
-
 | Input Screen | Graph View | AI Insights |
 |:---:|:---:|:---:|
-| *Coming soon* | *Coming soon* | *Coming soon* |
+| ![Input Screen](screenshots/input_screen.png) | ![Graph View](screenshots/graph_view.png) | ![AI Insights](screenshots/ai_insights.png) |
 
 ---
 
