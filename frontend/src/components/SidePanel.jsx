@@ -1,21 +1,5 @@
 import { X, Crosshair, Brain, Tag, FileCode, Hash } from 'lucide-react';
-
-const LANG_COLORS = {
-  Python: '#3b82f6',
-  JavaScript: '#eab308',
-  TypeScript: '#06b6d4',
-  Java: '#ef4444',
-  Go: '#14b8a6',
-  Ruby: '#dc2626',
-  Rust: '#f97316',
-  default: '#71717a',
-};
-
-const COMPLEXITY_COLORS = {
-  low: '#10b981',
-  medium: '#f59e0b',
-  high: '#ef4444',
-};
+import { LANG_COLORS, COMPLEXITY_COLORS } from '../constants';
 
 export default function SidePanel({ node, aiResult, loading, onClose }) {
   const isOpen = !!node;
