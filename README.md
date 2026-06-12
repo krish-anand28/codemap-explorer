@@ -143,7 +143,7 @@ The UI opens at **http://localhost:5173**
 
 | Input Screen | Graph View | AI Insights |
 |:---:|:---:|:---:|
-| ![Input Screen](screenshots/input_screen.png) | ![Graph View](screenshots/graph_view.png) | ![AI Insights](screenshots/ai_insights.png) |
+| <img src="screenshots/input_screen.png" width="100%" alt="Input Screen"/> | <img src="screenshots/graph_view.png" width="100%" alt="Graph View"/> | <img src="screenshots/ai_insights.png" width="100%" alt="AI Insights"/> |
 
 ---
 
